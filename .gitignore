@@ -1,0 +1,16 @@
+.env
+*.db
+*.log
+node_modules/
+.DS_Store
+*.pyc
+__pycache__/
+# Ignore Go build output
+helper_go/*.exe
+helper_go/*.out
+helper_go/*.test
+# Ignore editor/project files
+.vscode/
+.idea/
+*.swp
+*.swo

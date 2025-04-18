@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MFA Setup</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>MFA Setup</h2>
+    <div id="mfa-setup-info">
+      <p>Scan this QR code with your authenticator app, or enter the secret manually:</p>
+      <div id="mfa-qr"></div>
+      <div id="mfa-secret"></div>
+      <div id="mfa-recovery-section" style="margin-top:1em;"></div>
+      <form id="mfa-verify-form">
+        <label>Enter code from your authenticator app:
+          <input type="text" id="mfa-verify-code" required pattern="\d{6}" maxlength="6" autocomplete="one-time-code">
+        </label>
+        <button type="submit">Verify</button>
+        <div id="mfa-verify-msg"></div>
+      </form>
+      <button id="mfa-continue" disabled>Continue</button>
+    </div>
+  </div>
+  <script>
+    let mfaSecret = '';
+    let mfaEmail = '';
+    fetch('/mfa_setup_info').then(r => r.json()).then(data => {
+      if (data.ok && data.secret && data.qr_code_data_url) {
+        mfaSecret = data.secret;
+        mfaEmail = data.email;
+        document.getElementById('mfa-secret').textContent = 'Secret: ' + data.secret;
+        document.getElementById('mfa-qr').innerHTML = `<img src="${data.qr_code_data_url}" alt="MFA QR Code">`;
+        if (data.recovery_codes && data.recovery_codes.length > 0) {
+          document.getElementById('mfa-recovery-section').innerHTML =
+            '<b>Recovery Codes (save these!):</b><br>' +
+            data.recovery_codes.map(c => `<code>${c}</code>`).join('<br>') +
+            '<br><small>Each code can be used once if you lose access to your authenticator app.</small>';
+        }
+      } else {
+        document.getElementById('mfa-setup-info').innerHTML = '<p style="color:red;">Error loading MFA setup info: ' + (data.msg || 'Unknown error') + '</p>';
+      }
+    });
+    document.getElementById('mfa-verify-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const code = document.getElementById('mfa-verify-code').value;
+      const res = await fetch('/mfa_setup_verify', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({code: code})
+      });
+      const data = await res.json();
+      const msg = document.getElementById('mfa-verify-msg');
+      if (data.ok) {
+        msg.textContent = 'MFA verified! You can continue.';
+        msg.style.color = 'green';
+        document.getElementById('mfa-continue').disabled = false;
+      } else {
+        msg.textContent = data.msg || 'Invalid code';
+        msg.style.color = 'red';
+        document.getElementById('mfa-continue').disabled = true;
+      }
+    };
+    document.getElementById('mfa-continue').onclick = function() {
+      window.location.href = '/static/dashboard.html';
+    };
+  </script>
+</body>
+</html>

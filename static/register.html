@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Register</h2>
+    <form id="register-form" autocomplete="off">
+      <label>Email:<input type="email" name="email" required></label>
+      <label>Password:<input type="password" name="password" id="register-password" minlength="8" required></label>
+      <div id="register-pw-strength"></div>
+      <div id="register-recaptcha-container"></div>
+      <div id="register-captcha-hint">This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.</div>
+      <button type="submit">Register</button>
+      <div id="register-form-msg"></div>
+    </form>
+    <a href="/static/login.html">Already have an account? Login</a>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"></script>
+  <script defer src="/static/register.js"></script>
+</body>
+</html>

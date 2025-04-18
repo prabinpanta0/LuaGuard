@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Login</h2>
+    <form id="login-form" autocomplete="off">
+      <label>Email:<input type="email" name="email" required></label>
+      <label>Password:<input type="password" name="password" id="login-password" minlength="8" required></label>
+      <div id="login-pw-strength"></div>
+      <div id="login-recaptcha-container"></div>
+      <div id="login-captcha-hint">This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.</div>
+      <button type="submit">Login</button>
+      <div id="login-form-msg"></div>
+      <a href="/static/forgot.html" id="login-forgot-link">Forgot Password?</a>
+    </form>
+    <a href="/static/register.html">Don't have an account? Register</a>
+  </div>
+  <script defer src="/static/login.js"></script>
+</body>
+</html>

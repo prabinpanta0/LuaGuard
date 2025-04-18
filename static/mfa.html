@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MFA Verification</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h2>MFA Verification</h2>
+    <form id="mfa-form" autocomplete="off">
+      <label>MFA Code or Recovery Code:
+        <input type="text" name="mfa" id="mfa-input" required autocomplete="one-time-code">
+      </label>
+      <div id="mfa-msg"></div>
+      <div style="font-size:0.95em;color:#6366f1;margin-top:0.5em;">You can use a one-time recovery code if you lost access to your authenticator app.</div>
+      <button type="submit">Verify</button>
+    </form>
+  </div>
+  <script>
+  // --- Behavioral biometrics collection ---
+  let biometrics = {keyTimings: [], mouseMoves: []};
+  let lastKeyTime = null;
+  const mfaInput = document.getElementById('mfa-input');
+  mfaInput.addEventListener('keydown', function(e) {
+    const now = Date.now();
+    if (lastKeyTime) {
+      biometrics.keyTimings.push(now - lastKeyTime);
+    }
+    lastKeyTime = now;
+  });
+  document.addEventListener('mousemove', function(e) {
+    biometrics.mouseMoves.push({x: e.clientX, y: e.clientY, t: Date.now()});
+    if (biometrics.mouseMoves.length > 100) biometrics.mouseMoves.shift();
+  });
+
+  document.getElementById('mfa-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const code = document.getElementById('mfa-input').value;
+    const payload = {mfa: code, biometrics: biometrics};
+    const res = await fetch('/mfa', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    const msg = document.getElementById('mfa-msg');
+    if (data.ok) {
+      window.location.href = '/static/dashboard.html';
+    } else if (data.locked) {
+      window.location.href = '/static/locked.html';
+    } else {
+      msg.textContent = data.msg || 'Invalid code';
+      msg.style.color = 'red';
+    }
+  });
+  </script>
+</body>
+</html>

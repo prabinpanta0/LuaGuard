@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Dashboard</h2>
+    <div id="user-info"></div>
+    <button id="change-pw-btn">Change Password</button>
+    <div id="change-pw-section" style="display:none;">
+      <form id="change-pw-form">
+        <label>New Password:
+          <input type="password" name="new_password" id="new-password" required minlength="8">
+        </label>
+        <button type="submit">Update Password</button>
+        <div id="change-pw-msg"></div>
+      </form>
+    </div>
+    <button id="logout-btn">Log out</button>
+    <button id="delete-account-btn">Delete Account</button>
+    <div id="delete-account-section" style="display:none;">
+      <form id="delete-account-form">
+        <label>Enter password to confirm deletion:
+          <input type="password" name="password" id="delete-password" required minlength="8">
+        </label>
+        <button type="submit">Confirm Delete</button>
+        <div id="delete-account-msg"></div>
+      </form>
+    </div>
+    <h3>Login History</h3>
+    <ul id="log-history"></ul>
+  </div>
+  <script>
+    async function fetchUserInfo() {
+      const res = await fetch('/me');
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('user-info').innerHTML =
+          `<b>Email:</b> ${data.email}<br><b>Verified:</b> ${data.verified}`;
+        const logList = document.getElementById('log-history');
+        logList.innerHTML = '';
+        (data.log_history || []).forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          logList.appendChild(li);
+        });
+      }
+    }
+    fetchUserInfo();
+    document.getElementById('change-pw-btn').onclick = function() {
+      document.getElementById('change-pw-section').style.display = 'block';
+    };
+    document.getElementById('change-pw-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const pw = document.getElementById('new-password').value;
+      const res = await fetch('/change_password', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({new_password: pw})
+      });
+      const data = await res.json();
+      const msg = document.getElementById('change-pw-msg');
+      if (data.ok) {
+        msg.textContent = 'Password updated!';
+        msg.style.color = 'green';
+      } else {
+        msg.textContent = data.msg || 'Error.';
+        msg.style.color = 'red';
+      }
+    };
+    document.getElementById('logout-btn').onclick = async function() {
+      await fetch('/logout');
+      window.location.href = '/static/login.html';
+    };
+    document.getElementById('delete-account-btn').onclick = function() {
+      document.getElementById('delete-account-section').style.display = 'block';
+    };
+    document.getElementById('delete-account-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const pw = document.getElementById('delete-password').value;
+      const res = await fetch('/delete_account', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: pw})
+      });
+      const data = await res.json();
+      const msg = document.getElementById('delete-account-msg');
+      if (data.ok) {
+        msg.textContent = 'Account deleted.';
+        msg.style.color = 'green';
+        setTimeout(() => window.location.href = '/static/register.html', 1000);
+      } else {
+        msg.textContent = data.msg || 'Error.';
+        msg.style.color = 'red';
+      }
+    };
+  </script>
+</body>
+</html>
